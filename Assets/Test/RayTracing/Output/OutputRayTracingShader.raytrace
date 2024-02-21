@@ -1,0 +1,12 @@
+RWTexture2D<float4> _OutputTarget;
+
+#pragma max_recursion_depth 1
+
+[shader("raygeneration")]
+//每个像素随机输出颜色
+void OutputColorRayGenShader()
+{
+    uint2 dispatchIdx = DispatchRaysIndex().xy;
+   
+    _OutputTarget[dispatchIdx] = float4(dispatchIdx.x * 1.0f/1920 ,dispatchIdx.y * 1.0f/1080, 0, 0);
+}

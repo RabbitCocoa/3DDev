@@ -1,0 +1,100 @@
+#pragma max_recursion_depth 8
+#include "Raytracing.hlsl"
+
+int _VisualizeErrorShadow;
+
+RayDesc CreateTestRay(in float3 wspos, in float3 normal, in float3 tangent, in float rayLength)
+{
+  RayDesc rayDescriptor;
+  rayDescriptor.Origin = wspos + normal * 0.1;
+  rayDescriptor.Direction = tangent;
+  rayDescriptor.TMin = 1e-5;
+  rayDescriptor.TMax = rayLength;
+  return rayDescriptor;
+}
+
+[shader("raygeneration")]
+void RenderLightmapRayGenShader()
+{
+  const uint2 dispatchIdx = DispatchRaysIndex().xy;
+  float2 uv = dispatchIdx * _OutputTargetSize.zw;
+  float3 wspos = _LightmapGbufferPosition[dispatchIdx].xyz;
+	float4 normalAndLightmapTexelSize = _LightmapGbufferNormal[dispatchIdx];
+  float3 N = normalize(normalAndLightmapTexelSize.xyz * 2 - 1);
+  float dlightmapTexelSize = normalAndLightmapTexelSize.w;
+
+  float3 upVector = abs(N.z) < 0.999 ? float3(0, 0, 1) : float3(1, 0, 0);
+  float3 tangent = normalize(cross(upVector, N));
+  float3 bitangent = normalize(cross(tangent, N));
+  float3 tangentialDirs[4] =
+  {
+    tangent,
+    bitangent,
+    normalize(cross(N, tangent)),
+    normalize(cross(bitangent, N)),
+  };
+  float hitDistance = 1000; // 最近点
+  float3 nearestHitPosition;
+  float3 nearestHitNormal;
+  bool shadowLeak = false;
+  for (int i = 0; i < 4; ++i)
+  {
+    float3 dir = tangentialDirs[i];
+    RayDesc rayDescriptor = CreateTestRay(wspos, N, dir, dlightmapTexelSize);
+    MetaRayPayload shadowPayload;
+    shadowPayload.rayType = RayTypeShadow;
+    shadowPayload.hit = 0;
+    TraceRay(_AccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES, 0xFF, 0, 1, 0, rayDescriptor, shadowPayload);
+    if (shadowPayload.hit)
+    {
+      float dist = distance(shadowPayload.surface.position, wspos);
+      if (dist < hitDistance) {
+        hitDistance = dist;
+        nearestHitPosition = shadowPayload.surface.position;
+        nearestHitNormal = shadowPayload.surface.normal;
+        shadowLeak = true;
+      }
+    }
+  }
+
+  if (_VisualizeErrorShadow)
+  {
+    if (shadowLeak)
+    {
+      _OutputTarget[dispatchIdx] = 0;
+    }
+    else
+    {
+      _OutputTarget[dispatchIdx] = float4(1, 1, 1, 1);
+    }
+    return;
+  }
+  else
+  {
+    if (shadowLeak)
+    {
+      // new position =  hit position  + normal * bias
+      wspos = nearestHitPosition + nearestHitNormal * 0.01f;
+    }
+  }
+
+  
+
+  Random rng = { uv, _RNGSeed.xy };
+	float3 radiance = Raytracing(wspos, N, rng);
+  float4 result = float4(radiance, 0);
+  if (_FrameIndex > 1)
+  {
+    float t = 1.0f / (float)_FrameIndex;
+    float4 prev = _OutputTarget[dispatchIdx];
+    result = prev * (1.0f - t) + result * t;
+  }
+  _OutputTarget[dispatchIdx] = result;
+}
+    [shader("miss")]
+            void MissShader(inout MetaRayPayload rayPayload : SV_RayPayload)
+            {
+                float3 origin = WorldRayOrigin();
+                float3 direction = WorldRayDirection();
+                rayPayload.rayType = 0;
+            }

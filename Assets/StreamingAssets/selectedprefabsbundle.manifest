@@ -1,0 +1,26 @@
+ManifestFileVersion: 0
+CRC: 2948844987
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 7684f2f0a204f8ff137faf31f6ae3388
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 8a4f3311fb51bc0364f12caa75b53661
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: 11500000, guid: ee38664ae92627445970b21f1f5aefd5, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers:
+- AssemblyName: Render
+  ClassName: OpWorld.Render.StreamingMeshResource
+Assets:
+- "Assets/Prefabs/\u7535\u952F.prefab"
+- "Assets/Prefabs/\u9524\u5B50.prefab"
+Dependencies: []

@@ -1,0 +1,86 @@
+
+#pragma max_recursion_depth 10
+#include "./Common.hlsl"
+#include "./Random.hlsl"
+
+RWTexture2D<float4> _OutputTarget;
+float4 _OutputTargetSize;
+float _ShadowSoftness;
+float4 _RNGSeed;
+int _FrameIndex;
+
+[shader("raygeneration")]
+void SoftShadowRayGenShader()
+{
+  const uint2 dispatchIdx = DispatchRaysIndex().xy;
+  float2 uv = dispatchIdx * _OutputTargetSize.zw;
+  Random rng = { uv, _RNGSeed.xy };
+    float2 jitter = rand2(rng) * 2 - 1; // -1 1之间偏移 抖动一个像素
+    
+  float3 origin;
+  float3 direction;
+GenerateCameraRayWithOffset(origin, direction, jitter * 0.5);
+
+
+ 
+
+ RayHitQuery rayPayload;
+  rayPayload.rng = rng;
+  rayPayload.rayType = RayTypePrimary;
+  rayPayload.hit = 0;
+  
+    RayDesc rayDescriptor;
+    rayDescriptor.Origin = origin;
+    rayDescriptor.Direction = direction;
+    rayDescriptor.TMin = 1e-5f;
+    rayDescriptor.TMax = _CameraFarDistance;
+    
+  TraceRay(_AccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0xFF, 0, 1, 0, rayDescriptor, rayPayload);
+
+ float3 radiance = 0;
+  if (rayPayload.hit == 1)
+  {
+    float3 N = rayPayload.normal;
+    float3 wspos = rayPayload.wspos;
+    float3 L = normalize(float3(0.5, 0.5, 0.5));
+    radiance = rayPayload.albedo * dot(N, L) / PI;
+
+    RayDesc shadowRayDescriptor;
+    
+    //在光影附近随机偏移
+    float3 fakeLightPos = wspos + L * 1000;
+    float3 randPos = float3(rand(rng), rand(rng), rand(rng)) * 2 - 1;
+    
+    randPos *= _ShadowSoftness;
+    shadowRayDescriptor.Direction = normalize(fakeLightPos + randPos - wspos);
+    shadowRayDescriptor.Origin = wspos + shadowRayDescriptor.Direction * 0.01;
+    shadowRayDescriptor.TMin = 0;
+    shadowRayDescriptor.TMax = 1000;
+    
+    RayHitQuery shadowPayload;
+    shadowPayload.rayType = RayTypeShadow;
+    shadowPayload.hit = 0;
+
+    TraceRay(_AccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0xFF, 0, 1, 0, shadowRayDescriptor, shadowPayload);
+    float shadow = shadowPayload.hit ? 0 : 1;
+    radiance = radiance * shadow;
+  }
+  float4 result = float4(radiance, 1);
+    //每帧采样
+    //取
+    if (_FrameIndex > 1)
+    {
+      float t = 1.0f / (float)_FrameIndex;
+      float4 prev = _OutputTarget[dispatchIdx];
+      result = prev * (1.0f - t) + result * t;
+    }
+ _OutputTarget[dispatchIdx] = result;
+}
+     [shader("miss")]
+            void MissShader(inout RayHitQuery rayPayload : SV_RayPayload)
+            {
+                float3 origin = WorldRayOrigin();
+                float3 direction = WorldRayDirection();
+                rayPayload.hit = 0;
+            }
+

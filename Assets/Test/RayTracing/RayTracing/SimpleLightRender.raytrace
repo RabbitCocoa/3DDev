@@ -1,0 +1,36 @@
+
+#pragma max_recursion_depth 10
+#include"./Common.hlsl"
+RWTexture2D<float4> _OutputTarget;
+
+[shader("raygeneration")]
+void SimpleLightRender()
+{
+ const uint2 dispatchIdx = DispatchRaysIndex().xy;
+
+  float3 origin;
+  float3 direction;
+  GenerateCameraRay(origin, direction);
+
+  RayDesc rayDescriptor;
+  rayDescriptor.Origin = origin;
+  rayDescriptor.Direction = direction;
+  rayDescriptor.TMin = 1e-5f;
+  rayDescriptor.TMax = _CameraFarDistance;
+
+  RayPayload rayPayload;
+  rayPayload.radiance = 0;
+  rayPayload.rayType = RayTypePrimary;
+  rayPayload.hit = 0 ;
+  TraceRay(_AccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0xFF, 0, 1, 0, rayDescriptor,
+   rayPayload);
+  _OutputTarget[dispatchIdx] = float4(rayPayload.radiance, 1);
+}
+     [shader("miss")]
+            void MissShader(inout RayPayload rayPayload : SV_RayPayload)
+            {
+                float3 origin = WorldRayOrigin();
+                float3 direction = WorldRayDirection();
+                rayPayload.radiance = 0;
+            }
+

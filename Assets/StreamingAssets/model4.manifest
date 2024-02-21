@@ -1,0 +1,31 @@
+ManifestFileVersion: 0
+CRC: 1054554576
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 96ac8ebad104dfc2e5c08275fe69cf70
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 739ef889a86a3475baf11d3d94f7ed65
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 23
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 33
+  Script: {instanceID: 0}
+- Class: 43
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- "Assets/LoadTest/ExampleAssets/Models/\u7535\u952F.fbx"
+Dependencies: []

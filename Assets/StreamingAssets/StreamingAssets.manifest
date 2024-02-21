@@ -1,0 +1,7 @@
+ManifestFileVersion: 0
+CRC: 12260390
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: selectedprefabsbundle
+      Dependencies: {}

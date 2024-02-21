@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6c94e3c2dc515c4c84b388eec12b7dd, type: 3}
+  m_Name: LightmapSettings
+  m_EditorClassIdentifier: 
+  useRaytracing: 1
+  bounceCount: 8
+  lightmapDim: 1024
+  shadowSoftness: 75
+  targetSampleCount: 1024
+  skylight: {fileID: 8900000, guid: 210ebdacc71312a4cb004d27b8f65db4, type: 3}
+  skylightIntensity: 0.2

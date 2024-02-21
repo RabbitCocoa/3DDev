@@ -1,0 +1,21 @@
+#pragma kernel UploadPageCS
+#pragma kernel UploadTexCS
+
+Texture2D<float4> _InputTex;
+RWTexture2D<float4> _PageTableRT; //可读写纹理 用来保存虚拟页面对应的物理页面 
+float4 _VTPageOffset;
+float4 _VTPageValue;
+
+//设置单独的虚拟页
+[numthreads(1, 1, 1)]
+void UploadPageCS(uint3 id : SV_DispatchThreadID) {
+  _PageTableRT[(int2)_VTPageOffset.xy] = _VTPageValue;
+}
+
+
+//批量设置整个页表
+[numthreads(16, 16, 1)]
+void UploadTexCS(uint3 id : SV_DispatchThreadID) {
+  _PageTableRT[id.xy] = _InputTex[id.xy];
+  //_PageTableRT[id.xy] = float4(0, 1, 8 / 255.0, 1);
+}

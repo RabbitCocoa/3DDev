@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4d503edc2a1483999a6df573f319c78, type: 3}
+  m_Name: LightmapPipelineAsset
+  m_EditorClassIdentifier: 
+  settings:
+    lightonOn: 1
+    BakeModel: 0
+    renderLightmapShader: {fileID: 4807578003741378534, guid: c68077986b66ddf4da1e537aeea71b78, type: 3}
+    RTGIShader: {fileID: 4807578003741378534, guid: 060888eed2fb5b24e869a65bb3d2bf99, type: 3}
+    m_visualizeErrorShadow: 0
+    lightmapDim: 2048
+    skylight: {fileID: 8900000, guid: 210ebdacc71312a4cb004d27b8f65db4, type: 3}
+    skyIntensity: 0.2
+    BounceCount: 10
+    _ShadowSoftness: 75
+    targetSampleCount: 2048

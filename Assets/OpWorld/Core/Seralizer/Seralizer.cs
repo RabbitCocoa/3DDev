@@ -233,7 +233,7 @@ namespace OpWorld.Core.Seralizer
             if (type == typeof(string))
                 serObj.special = (string)obj;
 
-            //guid
+            //guid 即其他的Unity资源引用
             else if (type == typeof(Guid))
                 serObj.special = ((Guid)obj).ToString();
             //unity object
@@ -255,6 +255,7 @@ namespace OpWorld.Core.Seralizer
                     serObj.special = mi.Name + ", " + mi.DeclaringType.AssemblyQualifiedName;
                 }
             }
+            //基本类型
             else if (type.IsPrimitive)
             {
                 serObj.values = new Value[1];

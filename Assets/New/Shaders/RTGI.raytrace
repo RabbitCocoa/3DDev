@@ -1,0 +1,61 @@
+#pragma max_recursion_depth 8
+#include "Raytracing.hlsl"
+#include "Camera.hlsl"
+
+RayDesc CreatePrimaryRay(inout Random rng)
+{
+  float2 jitter = rand2(rng) * 2 - 1;
+  float3 origin;
+  float3 direction;
+  GenerateCameraRayWithOffset(origin, direction, jitter);
+
+  RayDesc rayDescriptor;
+  rayDescriptor.Origin = origin;
+  rayDescriptor.Direction = direction;
+  rayDescriptor.TMin = 1e-5f;
+  rayDescriptor.TMax = _CameraFarDistance;
+  return rayDescriptor;
+}
+
+[shader("raygeneration")]
+void RTGIRayGenShader()
+{
+  const uint2 dispatchIdx = DispatchRaysIndex().xy;
+  float2 uv = dispatchIdx * _OutputTargetSize.zw;
+
+  Random rng = { uv, _RNGSeed.xy };
+  RayDesc rayDescriptor = CreatePrimaryRay(rng);
+  
+  MetaRayPayload rayPayload;
+	rayPayload.rayType = RayTypePrimary;
+	rayPayload.hit = 0;
+  TraceRay(_AccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0xFF, 0, 1, 0, rayDescriptor, rayPayload);
+
+  float4 result = 0;
+  if (rayPayload.hit)
+  {
+    float3 wspos = rayPayload.surface.position;
+    float3 N = rayPayload.surface.normal;
+    float3 radiance = Raytracing(wspos, N, rng);
+    result = float4(radiance, 1);
+    if (_FrameIndex > 1)
+    {
+      float t = 1.0f / (float)_FrameIndex;
+      float4 prev = _OutputTarget[dispatchIdx];
+      result = prev * (1.0f - t) + result * t;
+    }
+  }
+  else
+  {
+    result = _TexSkyLight.SampleLevel(s_linear_clamp_sampler, rayDescriptor.Direction, 0);
+  }
+  _OutputTarget[dispatchIdx] = result;
+}
+
+    [shader("miss")]
+            void MissShader(inout MetaRayPayload rayPayload : SV_RayPayload)
+            {
+                float3 origin = WorldRayOrigin();
+                float3 direction = WorldRayDirection();
+                rayPayload.rayType = 0;
+            }
